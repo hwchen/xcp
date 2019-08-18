@@ -29,7 +29,7 @@ use crate::progress::{
     iprogress_bar, BatchUpdater, NopUpdater, ProgressBar, ProgressUpdater, StatusUpdate, Updater,
     BATCH_DEFAULT,
 };
-use crate::utils::{FileType, ToFileType, empty};
+use crate::utils::{FileType, ToFileType, empty, is_hidden};
 use crate::options::{Opts, num_workers, parse_ignore, ignore_filter};
 
 
@@ -108,7 +108,7 @@ fn copy_source(
         msg: "Failed to find source directory name.",
     })?;
 
-    let target_base = if opts.dest.exists() {
+    let target_base = if opts.dest.exists() && !opts.no_target_directory {
         opts.dest.join(sourcedir)
     } else {
         opts.dest.clone()
@@ -118,7 +118,19 @@ fn copy_source(
     let gitignore = parse_ignore(source, opts)?;
 
     for entry in WalkDir::new(&source).into_iter()
-        .filter_entry(|e| ignore_filter(e, &gitignore))
+        .filter_entry(|e| {
+            let copy_hidden = if opts.cp_hidden {
+                // if flag for copy hidden is set,
+                // then hidden files always pass filter
+                true
+            } else {
+                // default ignore hidden
+                // hidden files do not pass filter
+                !is_hidden(e)
+            };
+
+            ignore_filter(e, &gitignore) && copy_hidden
+        })
     {
         debug!("Got tree entry {:?}", entry);
         let e = entry?;

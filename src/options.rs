@@ -66,6 +66,14 @@ pub struct Opts {
     #[structopt(long = "no-progress")]
     pub noprogress: bool,
 
+    /// treat DEST as a normal file, not directory. Enables overwritng directory with directory
+    #[structopt(short = "T", long = "no-target-directory")]
+    pub no_target_directory: bool,
+
+    /// copy hidden files (xcp does not cp hidden files by default)
+    #[structopt(short = "h", long = "cp-hidden")]
+    pub cp_hidden: bool,
+
     #[structopt(raw(required = "true", min_values = "1"))]
     pub source_list: Vec<String>,
 

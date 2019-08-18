@@ -16,6 +16,7 @@
 
 use std::fs;
 use std::path::{Path, PathBuf};
+use walkdir::DirEntry;
 
 pub enum FileType {
     File,
@@ -48,4 +49,12 @@ impl ToFileType for fs::FileType {
 
 pub fn empty(path: &Path) -> bool {
     *path == PathBuf::new()
+}
+
+// TODO: could this be done with Walk in `ignore`?
+pub fn is_hidden(entry: &DirEntry) -> bool {
+    entry.file_name()
+        .to_str()
+        .map(|s| s.starts_with("."))
+        .unwrap_or(false)
 }
